@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренировка карт - Нео-Таро</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+        :root {
+            --bg-primary: #090d16;
+            --bg-secondary: #0d1b1e;
+            --gold: #d4af37;
+            --gold-light: #f4d875;
+            --gold-dark: #b8962e;
+            --red-suit: #e74c3c;
+            --black-suit: #8b9bb4;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+        }
+
+        .font-display {
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .gold-text {
+            color: var(--gold);
+        }
+
+        .gold-border {
+            border-color: var(--gold);
+        }
+
+        .gold-glow {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .card {
+            background: linear-gradient(145deg, #1a1f2e 0%, #0f141f 100%);
+            border: 2px solid var(--gold);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2);
+        }
+
+        .card-display {
+            background: linear-gradient(145deg, #1a1f2e 0%, #0f141f 100%);
+            border: 3px solid var(--gold);
+            border-radius: 20px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: cardAppear 0.5s ease-out;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8) rotateY(90deg);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) rotateY(0deg);
+            }
+        }
+
+        .suit-red {
+            color: var(--red-suit);
+        }
+
+        .suit-black {
+            color: var(--black-suit);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: #090d16;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .btn-option {
+            background: rgba(26, 31, 46, 0.8);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            color: #e8e8e8;
+            transition: all 0.3s ease;
+        }
+
+        .btn-option:hover:not(:disabled) {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .btn-option.correct {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: #2ecc71;
+        }
+
+        .btn-option.incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: #e74c3c;
+        }
+
+        .tab-btn {
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: #090d16;
+        }
+
+        .input-field {
+            background: rgba(26, 31, 46, 0.8);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            color: #e8e8e8;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: var(--gold);
+            outline: none;
+            box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+        }
+
+        .detail-card {
+            background: linear-gradient(145deg, #1a1f2e 0%, #0f141f 100%);
+            border: 2px solid var(--gold);
+            border-radius: 16px;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .progress-bar {
+            background: rgba(212, 175, 55, 0.2);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 640px) {
+            .card-display {
+                min-height: 160px;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-bold gold-text mb-2">
+                Тренировка Карт
+            </h1>
+            <p class="text-gray-400 text-sm md:text-base">
+                Изучай значения 36 карт гадательной колоды
+            </p>
+        </header>
+
+        <!-- Tabs -->
+        <div class="flex justify-center mb-8">
+            <div class="flex bg-[#1a1f2e] rounded-full p-1 gold-border border">
+                <button id="tab-quiz" class="tab-btn active px-6 py-3 rounded-full font-medium text-sm md:text-base" onclick="switchTab('quiz')">
+                    Викторина
+                </button>
+                <button id="tab-reference" class="tab-btn px-6 py-3 rounded-full font-medium text-sm md:text-base" onclick="switchTab('reference')">
+                    Справочник
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz Tab -->
+        <div id="quiz-content">
+            <!-- Mode Selection -->
+            <div id="mode-selection" class="text-center">
+                <h2 class="font-display text-2xl md:text-3xl gold-text mb-6">Выберите режим</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+                    <button onclick="startQuiz(10)" class="card p-6 cursor-pointer hover:scale-105 transition-transform">
+                        <div class="text-3xl mb-2">⚡</div>
+                        <h3 class="font-display text-xl gold-text mb-2">Короткая</h3>
+                        <p class="text-gray-400 text-sm">10 карт</p>
+                    </button>
+                    <button onclick="startQuiz(15)" class="card p-6 cursor-pointer hover:scale-105 transition-transform">
+                        <div class="text-3xl mb-2">🔥</div>
+                        <h3 class="font-display text-xl gold-text mb-2">Средняя</h3>
+                        <p class="text-gray-400 text-sm">15 карт</p>
+                    </button>
+                    <button onclick="startQuiz(36)" class="card p-6 cursor-pointer hover:scale-105 transition-transform">
+                        <div class="text-3xl mb-2">👑</div>
+                        <h3 class="font-display text-xl gold-text mb-2">Супер-игра</h3>
+                        <p class="text-gray-400 text-sm">36 карт</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Game -->
+            <div id="quiz-game" class="hidden">
+                <!-- Progress -->
+                <div class="mb-6">
+                    <div class="flex justify-between text-sm text-gray-400 mb-2">
+                        <span>Карта <span id="current-card-num">1</span> из <span id="total-cards">10</span></span>
+                        <span>Правильных: <span id="correct-count" class="gold-text">0</span></span>
+                    </div>
+                    <div class="progress-bar h-2">
+                        <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Card Display -->
+                <div class="card-display mb-8">
+                    <div class="text-center">
+                        <div id="card-suit" class="text-6xl md:text-8xl mb-2">♥</div>
+                        <div id="card-rank" class="font-display text-3xl md:text-4xl gold-text">Туз</div>
+                        <div id="card-title" class="text-gray-400 text-sm md:text-base mt-1">Туз червей</div>
+                    </div>
+                </div>
+
+                <!-- Options -->
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                    <!-- Options will be inserted here -->
+                </div>
+
+                <!-- Detail Card -->
+                <div id="detail-card" class="detail-card p-6 hidden">
+                    <h3 class="font-display text-xl gold-text mb-3">Значение карты</h3>
+                    <p id="detail-text" class="text-gray-300 text-sm md:text-base leading-relaxed"></p>
+                    <button id="next-btn" onclick="nextCard()" class="btn-primary mt-6 px-8 py-3 rounded-full w-full md:w-auto">
+                        Следующая карта
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="quiz-results" class="hidden text-center">
+                <div id="results-icon" class="text-6xl mb-4">🎉</div>
+                <h2 id="results-title" class="font-display text-3xl md:text-4xl gold-text mb-4">Мастер Карт!</h2>
+                <p id="results-message" class="text-gray-300 mb-6"></p>
+                <div class="card p-6 max-w-md mx-auto mb-6">
+                    <div class="text-4xl font-display gold-text mb-2">
+                        <span id="final-score">0</span>%
+                    </div>
+                    <p class="text-gray-400 text-sm">
+                        Правильных ответов: <span id="final-correct">0</span> из <span id="final-total">0</span>
+                    </p>
+                </div>
+                <button onclick="backToModes()" class="btn-primary px-8 py-3 rounded-full">
+                    Попробовать снова
+                </button>
+            </div>
+        </div>
+
+        <!-- Reference Tab -->
+        <div id="reference-content" class="hidden">
+            <!-- Search -->
+            <div class="mb-6">
+                <input
+                    type="text"
+                    id="search-input"
+                    class="input-field w-full px-4 py-3 rounded-full"
+                    placeholder="Поиск по названию или ключевым словам..."
+                    oninput="filterCards()"
+                >
+            </div>
+
+            <!-- Cards Grid -->
+            <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Cards will be inserted here -->
+            </div>
+
+            <!-- No Results -->
+            <div id="no-results" class="hidden text-center py-12">
+                <div class="text-4xl mb-4">🔍</div>
+                <p class="text-gray-400">Карты не найдены</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
